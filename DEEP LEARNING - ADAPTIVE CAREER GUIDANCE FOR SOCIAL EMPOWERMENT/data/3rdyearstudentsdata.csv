@@ -1,0 +1,12 @@
+stuid,password,name,python,java,c,cpp,data_structures,aptitude,os,computer_networks,software_engineering,AIML,dbms,graphics_multimedia,theory_computation
+CS21001,pass123,Arjun Kumar,85,78,90,88,76,82,79,74,80,71,83,68,77
+CS21002,pass123,Priya Sharma,92,88,85,79,91,87,84,80,88,90,86,75,82
+CS21003,pass123,Rahul Verma,70,65,72,68,74,60,66,62,70,58,65,72,60
+CS21004,pass123,Sneha Patel,88,92,86,90,85,89,91,88,87,93,90,82,88
+CS21005,pass123,Karthik Raj,75,70,78,72,80,65,71,68,74,62,70,77,65
+CS21006,pass123,Divya Nair,95,90,88,93,89,92,87,91,94,96,92,85,90
+CS21007,pass123,Arun Subramanian,68,72,65,70,62,75,68,65,71,60,67,60,63
+CS21008,pass123,Meena Krishnan,82,85,80,84,78,83,86,81,84,88,83,76,80
+CS21009,pass123,Vikram Singh,60,58,65,62,70,55,60,57,63,50,58,65,52
+CS21010,pass123,Anitha Rajan,90,87,92,88,86,90,85,89,91,84,88,80,86
+3RDTEACHER,teachpass,ThirdYearTeacher,,,,,,,,,,,,,

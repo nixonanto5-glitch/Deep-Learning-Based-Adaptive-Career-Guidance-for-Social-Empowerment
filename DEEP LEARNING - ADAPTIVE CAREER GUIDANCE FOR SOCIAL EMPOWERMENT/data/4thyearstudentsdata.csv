@@ -1,0 +1,12 @@
+stuid,password,name,python,java,c,cpp,data_structures,aptitude,os,computer_networks,software_engineering,AIML,neural_network,cryptography,mobile_application_design,dbms,graphics_multimedia,theory_computation
+CS20001,pass123,Aakash Mehta,88,85,90,87,82,86,84,79,88,85,80,75,78,87,72,83
+CS20002,pass123,Bhavana Reddy,92,90,88,94,89,91,90,87,93,95,88,82,90,92,85,89
+CS20003,pass123,Charan Kumar,72,68,75,70,78,65,70,67,73,62,68,60,65,71,68,63
+CS20004,pass123,Deepika Iyer,95,93,91,96,90,94,92,90,96,98,93,87,94,95,89,92
+CS20005,pass123,Elan Murugan,78,75,80,76,82,70,74,72,79,68,73,65,70,77,74,68
+CS20006,pass123,Fathima Begum,85,88,83,87,84,89,87,85,88,92,85,80,88,86,80,84
+CS20007,pass123,Gopal Krishnaswamy,65,62,68,64,70,58,63,60,66,55,60,52,58,64,62,56
+CS20008,pass123,Harini Subramaniam,90,88,92,89,87,91,89,88,92,90,86,83,89,91,84,88
+CS20009,pass123,Irfan Shaikh,60,58,63,60,65,55,58,56,62,52,57,50,55,61,58,53
+CS20010,pass123,Janaki Devi,88,86,90,88,85,89,87,85,90,88,83,78,86,89,82,86
+4THTEACHER,teachpass,FourthYearTeacher,,,,,,,,,,,,,,,

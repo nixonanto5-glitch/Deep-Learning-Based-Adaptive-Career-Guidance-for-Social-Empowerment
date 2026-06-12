@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Adaptive Career Guidance — Student Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0a0e1a; --card:#111827; --card2:#0f1929; --border:#1f2d45;
+  --accent:#3b82f6; --accent2:#8b5cf6; --green:#10b981; --orange:#f59e0b;
+  --red:#ef4444; --text:#e2e8f0; --muted:#64748b; --muted2:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh}
+nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 32px;
+    display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.nav-brand{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+           background:linear-gradient(135deg,var(--accent),var(--accent2));
+           -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.nav-user{display:flex;align-items:center;gap:12px}
+.nav-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+            display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.nav-info{line-height:1.3}
+.nav-name{font-size:14px;font-weight:600}
+.nav-role{font-size:11px;color:var(--muted)}
+.logout-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;
+            color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+.tab-bar{display:flex;gap:4px;padding:24px 32px 0;border-bottom:1px solid var(--border);background:var(--card2)}
+.tab-btn{padding:12px 24px;border:none;background:transparent;color:var(--muted);
+         font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;
+         border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;border-radius:8px 8px 0 0}
+.tab-btn:hover{color:var(--text);background:rgba(59,130,246,.05)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(59,130,246,.08)}
+.tab-content{display:none;padding:32px;animation:fadeIn .3s ease}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.stat-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800}
+.stat-sub{font-size:12px;color:var(--muted2);margin-top:4px}
+.v-accent{color:var(--accent)}
+.v-green{color:var(--green)}
+.v-orange{color:var(--orange)}
+.v-red{color:var(--red)}
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px}
+.section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;
+               display:flex;align-items:center;gap:8px}
+.chart-wrap{position:relative;height:300px}
+.subj-grid{display:grid;gap:10px}
+.subj-row{display:flex;align-items:center;gap:12px;padding:12px 16px;
+          background:var(--card2);border-radius:10px;border:1px solid var(--border)}
+.subj-name{flex:1;font-size:14px;font-weight:500;text-transform:capitalize}
+.subj-score{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;min-width:48px;text-align:right}
+.subj-bar{flex:2;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.subj-fill{height:100%;border-radius:3px;width:0;transition:width 1s ease}
+/* Color classes applied by Jinja on the row — no inline Jinja in style attr */
+.score-green .subj-fill{background:var(--green)}
+.score-green .subj-score{color:var(--green)}
+.score-orange .subj-fill{background:var(--orange)}
+.score-orange .subj-score{color:var(--orange)}
+.score-red .subj-fill{background:var(--red)}
+.score-red .subj-score{color:var(--red)}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase}
+.badge-O{background:rgba(16,185,129,.15);color:var(--green)}
+.badge-A{background:rgba(59,130,246,.15);color:var(--accent)}
+.badge-B{background:rgba(245,158,11,.15);color:var(--orange)}
+.badge-C{background:rgba(239,68,68,.15);color:var(--red)}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.skill-card{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:18px;transition:all .2s}
+.skill-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.skill-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.skill-name{font-weight:600;font-size:14px;text-transform:capitalize}
+.skill-level{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.level-Weak{background:rgba(239,68,68,.15);color:var(--red)}
+.level-Average{background:rgba(245,158,11,.15);color:var(--orange)}
+.level-Strong{background:rgba(16,185,129,.15);color:var(--green)}
+.skill-action{font-size:13px;color:var(--muted2);margin-bottom:12px}
+.improve-note{font-size:12px;color:var(--orange);margin-bottom:10px}
+.skill-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);
+            text-decoration:none;padding:6px 12px;border:1px solid rgba(59,130,246,.3);
+            border-radius:8px;transition:all .2s}
+.skill-link:hover{background:rgba(59,130,246,.1)}
+.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
+.cluster-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.cluster-name{font-size:13px;font-weight:600;margin-bottom:8px}
+.cluster-score{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)}
+.cluster-bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.cluster-fill{height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+              transition:width 1s ease}
+.roadmap-list{display:flex;flex-direction:column;gap:0}
+.rm-item{display:flex;gap:0;position:relative}
+.rm-item:last-child .rm-line{display:none}
+.rm-left{width:80px;text-align:center;padding-top:4px}
+.rm-week{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.rm-dot{width:12px;height:12px;border-radius:50%;margin:6px auto 0;border:2px solid var(--bg)}
+.rm-dot-weak{background:var(--red)}
+.rm-dot-avg{background:var(--orange)}
+.rm-dot-strong{background:var(--green)}
+.rm-line{width:2px;background:var(--border);margin:0 auto;min-height:20px}
+.rm-body{flex:1;padding:0 0 24px 16px}
+.rm-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.rm-subj{font-weight:600;font-size:14px;margin-bottom:6px;text-transform:capitalize}
+.rm-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted2);margin-bottom:10px}
+.rm-task{font-size:13px;color:var(--text);margin-bottom:10px}
+.rm-gfg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#2f9e44;
+        text-decoration:none;padding:5px 12px;border:1px solid rgba(47,158,68,.3);
+        border-radius:8px;font-weight:500;transition:all .2s}
+.rm-gfg:hover{background:rgba(47,158,68,.1)}
+.placement-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.refresh-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);
+             background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;
+             font-size:13px;cursor:pointer;transition:all .2s}
+.refresh-btn:hover{background:rgba(59,130,246,.1)}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.company-card{background:var(--card2);border:1px solid var(--border);border-radius:14px;
+              padding:20px;position:relative;overflow:hidden}
+.company-card.open{border-color:rgba(16,185,129,.4)}
+.company-card.closed{border-color:var(--border);opacity:.7}
+.c-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.c-logo{font-size:26px}
+.c-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.c-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;margin-top:2px}
+.c-open{background:rgba(16,185,129,.15);color:var(--green)}
+.c-closed{background:rgba(100,116,139,.15);color:var(--muted)}
+.c-qual{font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px}
+.c-actions{display:flex;gap:8px;flex-wrap:wrap}
+.c-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;
+       text-decoration:none;border:1px solid;transition:all .2s;display:inline-block}
+.c-btn-primary{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.08)}
+.c-btn-primary:hover{background:rgba(59,130,246,.18)}
+.c-btn-success{border-color:var(--green);color:var(--green);background:rgba(16,185,129,.08)}
+.c-btn-success:hover{background:rgba(16,185,129,.18)}
+.job-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;
+          background:rgba(59,130,246,.1);border-radius:6px;font-size:11px;
+          color:var(--muted2);margin:4px 4px 0 0}
+.naukri-section{margin-top:24px}
+.naukri-list{display:flex;flex-direction:column;gap:8px}
+.naukri-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+             padding:14px;display:flex;justify-content:space-between;align-items:center}
+.naukri-title{font-size:14px;font-weight:500}
+.naukri-co{font-size:12px;color:var(--muted);margin-top:2px}
+.notif{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--green);
+       border-radius:14px;padding:16px 20px;max-width:300px;z-index:200;
+       box-shadow:0 10px 40px rgba(0,0,0,.5);animation:slideUp .4s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.notif-close{position:absolute;top:10px;right:14px;cursor:pointer;color:var(--muted);font-size:18px}
+.notif h4{font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px}
+.notif p{font-size:12px;color:var(--muted2)}
+/* ── Naukri Jobs Tab ── */
+.naukri-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.naukri-hero h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px}
+.naukri-hero p{font-size:13px;color:var(--muted2)}
+.naukri-source{font-size:11px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.filter-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;
+            color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.search-box{padding:10px 16px;border-radius:10px;border:1px solid var(--border);
+            background:var(--card2);color:var(--text);font-family:'DM Sans',sans-serif;
+            font-size:14px;outline:none;width:280px;transition:border .2s}
+.search-box:focus{border-color:var(--accent)}
+.jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.job-card{background:var(--card2);border:1px solid var(--border);border-radius:14px;
+          padding:20px;transition:all .2s;position:relative}
+.job-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 30px rgba(59,130,246,.15)}
+.job-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.job-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.job-company{font-size:13px;color:var(--accent);font-weight:600}
+.job-badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;white-space:nowrap}
+.badge-hot{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-new{background:rgba(16,185,129,.15);color:var(--green)}
+.job-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.job-meta-item{font-size:11px;color:var(--muted2);display:flex;align-items:center;gap:4px;
+               background:var(--card);padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
+.job-desc{font-size:12px;color:var(--muted2);line-height:1.6;margin-bottom:14px}
+.job-skills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.skill-tag{font-size:11px;padding:3px 10px;border-radius:6px;
+           background:rgba(59,130,246,.1);color:var(--accent);border:1px solid rgba(59,130,246,.2)}
+.job-footer{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.job-posted{font-size:11px;color:var(--muted)}
+.job-actions{display:flex;gap:8px}
+.apply-btn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
+           text-decoration:none;border:none;transition:all .2s;display:inline-block}
+.apply-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+               box-shadow:0 4px 15px rgba(59,130,246,.3)}
+.apply-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.4)}
+.apply-secondary{background:transparent;border:1px solid var(--border);color:var(--muted2)}
+.apply-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.jobs-count{font-size:13px;color:var(--muted2);margin-bottom:16px}
+.jobs-count span{color:var(--accent);font-weight:700}
+.no-jobs{text-align:center;padding:60px;color:var(--muted)}
+.salary-badge{font-size:11px;color:var(--green);font-weight:600;
+              background:rgba(16,185,129,.1);padding:3px 10px;border-radius:6px;border:1px solid rgba(16,185,129,.2)}
+</style>
+</head>
+<body>
+
+<!--
+  DATA ISLAND: All Jinja dynamic values live here as JSON.
+  The <script> block below reads this — zero Jinja inside JS or CSS.
+-->
+<script type="application/json" id="page-data">{"scores": {{ scores_json | safe }}, "placementsOpen": {{ placements.total_open if (placements and placements.total_open) else 0 }}, "year": {{ year }}}</script>
+
+<nav>
+  <div class="nav-brand">🎓 ADAPTIVE CAREER GUIDANCE</div>
+  <div class="nav-user">
+    <div class="nav-avatar">{{ student.name[0] | upper }}</div>
+    <div class="nav-info">
+      <div class="nav-name">{{ student.name }}</div>
+      <div class="nav-role">
+        {{ year }}{% if year == 3 %}rd{% else %}th{% endif %} Year CSE — {{ student.stuid }}
+      </div>
+    </div>
+    <a href="/logout"><button class="logout-btn">Logout</button></a>
+  </div>
+</nav>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('performance',this)">📊 Performance</button>
+  <button class="tab-btn" onclick="showTab('skills',this)">💡 Skill Suggestions</button>
+  <button class="tab-btn" onclick="showTab('roadmap',this)">🗺️ Study Roadmap</button>
+  {% if year == 4 %}
+  <button class="tab-btn" id="placement-tab" onclick="showTab('placements',this)">
+    🏢 Placements
+    <span id="open-count"
+          style="background:#10b981;color:#fff;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px;display:none">
+    </span>
+  </button>
+  {% endif %}
+  <button class="tab-btn" id="naukri-tab" onclick="showTab('naukri',this)">
+    💼 IT Jobs
+    <span style="background:#f59e0b;color:#fff;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">LIVE</span>
+  </button>
+</div>
+
+<!-- ── TAB 1: PERFORMANCE ─────────────────────────────────────────────── -->
+<div class="tab-content active" id="tab-performance">
+
+  {% set sorted_asc  = performance.subjects.items() | sort(attribute='1.score') %}
+  {% set sorted_desc = performance.subjects.items() | sort(attribute='1.score', reverse=True) %}
+  {% set best_sub = sorted_desc | first %}
+  {% set weak_sub = sorted_asc  | first %}
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Overall %</div>
+      <div class="stat-value v-accent">{{ performance.overall_percentage }}%</div>
+      <div class="stat-sub">Across all {{ performance.total_subjects }} subjects</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Grade</div>
+      <div class="stat-value v-green">{{ performance.overall_grade }}</div>
+      <div class="stat-sub">Overall grade</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Strongest Subject</div>
+      <div class="stat-value v-green" style="font-size:15px;padding-top:6px">
+        {{ best_sub[0].replace('_',' ').title() }}
+      </div>
+      <div class="stat-sub">{{ best_sub[1].score | int }}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Needs Work</div>
+      <div class="stat-value v-orange" style="font-size:15px;padding-top:6px">
+        {{ weak_sub[0].replace('_',' ').title() }}
+      </div>
+      <div class="stat-sub">{{ weak_sub[1].score | int }}%</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📈 Score Distribution</div>
+    <div class="chart-wrap">
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📚 Subject-wise Performance</div>
+    <div class="subj-grid">
+      {% for subj, data in performance.subjects.items() %}
+        {% if data.score >= 80 %}
+          {% set color_class = 'score-green' %}
+        {% elif data.score >= 60 %}
+          {% set color_class = 'score-orange' %}
+        {% else %}
+          {% set color_class = 'score-red' %}
+        {% endif %}
+        {% if data.grade == 'O' %}
+          {% set badge_class = 'badge-O' %}
+        {% elif data.grade in ['A+', 'A'] %}
+          {% set badge_class = 'badge-A' %}
+        {% elif data.grade in ['B+', 'B'] %}
+          {% set badge_class = 'badge-B' %}
+        {% else %}
+          {% set badge_class = 'badge-C' %}
+        {% endif %}
+      <div class="subj-row {{ color_class }}">
+        <div class="subj-name">{{ subj.replace('_',' ').title() }}</div>
+        <div class="subj-bar">
+          <!-- data-width read by JS; no Jinja inside style="" -->
+          <div class="subj-fill" data-width="{{ data.score | int }}"></div>
+        </div>
+        <div class="subj-score">{{ data.score | int }}</div>
+        <span class="badge {{ badge_class }}">{{ data.grade }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📊 Bar Chart Analysis</div>
+    <div class="chart-wrap">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 2: SKILLS ──────────────────────────────────────────────────── -->
+<div class="tab-content" id="tab-skills">
+
+  <div class="section">
+    <div class="section-title">🎯 Career Track Fit</div>
+    <p style="font-size:14px;color:var(--muted2);margin-bottom:16px">
+      Based on your scores, your best career fit is:
+      <strong style="color:var(--accent);font-size:16px"> {{ skills.best_fit_career }}</strong>
+    </p>
+    <div class="cluster-grid">
+      {% for cluster, score in skills.cluster_scores.items() %}
+      <div class="cluster-card">
+        <div class="cluster-name">{{ cluster }}</div>
+        <div class="cluster-score">{{ score }}%</div>
+        <div class="cluster-bar">
+          <div class="cluster-fill" data-width="{{ score | int }}"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if skills.priority_focus %}
+  <div class="section" style="border-color:rgba(239,68,68,.3)">
+    <div class="section-title">🚨 Priority Focus Areas</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      {% for subj in skills.priority_focus %}
+      <span style="padding:8px 16px;border-radius:8px;background:rgba(239,68,68,.1);
+                   color:#fca5a5;font-size:13px;font-weight:600">
+        ⚠️ {{ subj.replace('_',' ').title() }}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="section">
+    <div class="section-title">💡 Subject-wise Skill Recommendations (AI-Powered)</div>
+    <div class="skill-grid">
+      {% for subj, data in skills.per_subject.items() %}
+      <div class="skill-card">
+        <div class="skill-head">
+          <div class="skill-name">{{ subj.replace('_',' ').title() }}</div>
+          <span class="skill-level level-{{ data.level }}">{{ data.level }}</span>
+        </div>
+        <div class="skill-action">{{ data.action }}</div>
+        {% if data.improvement > 0 %}
+        <div class="improve-note">+{{ data.improvement | int }}% needed to reach 80%</div>
+        {% endif %}
+        <a href="{{ data.gfg_link }}" target="_blank" class="skill-link">
+          🟢 Study on GeeksforGeeks →
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 3: ROADMAP ──────────────────────────────────────────────────── -->
+<div class="tab-content" id="tab-roadmap">
+  <div class="section">
+    <div class="section-title">🗺️ Personalised Study Roadmap (AI + RL Generated)</div>
+    <p style="font-size:13px;color:var(--muted2);margin-bottom:24px">
+      Subjects ordered by priority (weakest first). Days estimated from your performance level.
+    </p>
+    <div class="roadmap-list">
+      {% for item in roadmap %}
+        {% if item.level == 'Weak' %}
+          {% set dot_class = 'rm-dot-weak' %}
+          {% set bdg_class = 'badge-C' %}
+        {% elif item.level == 'Average' %}
+          {% set dot_class = 'rm-dot-avg' %}
+          {% set bdg_class = 'badge-B' %}
+        {% else %}
+          {% set dot_class = 'rm-dot-strong' %}
+          {% set bdg_class = 'badge-O' %}
+        {% endif %}
+      <div class="rm-item">
+        <div class="rm-left">
+          <div class="rm-week">Wk {{ item.week }}</div>
+          <div class="rm-dot {{ dot_class }}"></div>
+          <div class="rm-line"></div>
+        </div>
+        <div class="rm-body">
+          <div class="rm-card">
+            <div class="rm-subj">{{ item.subject }}</div>
+            <div class="rm-meta">
+              <span>📊 Current: <strong>{{ item.score | int }}%</strong></span>
+              <span>🎯 Target: <strong>{{ item.target | int }}%</strong></span>
+              <span>📅 Days: <strong>{{ item.days }}</strong></span>
+              <span class="badge {{ bdg_class }}">{{ item.level }}</span>
+            </div>
+            <div class="rm-task">{{ item.task }}</div>
+            <a href="{{ item.gfg_link }}" target="_blank" class="rm-gfg">
+              📗 GeeksforGeeks — {{ item.subject }} →
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 4: PLACEMENTS (4th year only) ──────────────────────────────── -->
+{% if year == 4 %}
+<div class="tab-content" id="tab-placements">
+  <div class="placement-header">
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px">🏢 Campus Placement Portal</h2>
+      <p style="font-size:13px;color:var(--muted2);margin-top:4px">
+        {{ placements.total_open if placements else 0 }} companies actively hiring freshers &amp; 0–2 yr experience
+      </p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span style="font-size:12px;color:var(--muted)">Filter:</span>
+      <button class="filter-btn active" onclick="filterCompanies('All',this)">All</button>
+      <button class="filter-btn" onclick="filterCompanies('Product',this)">🚀 Product</button>
+      <button class="filter-btn" onclick="filterCompanies('Service',this)">🏗️ Service</button>
+    </div>
+  </div>
+
+  <div class="company-grid" id="company-grid">
+    {% if placements and placements.companies %}
+      {% for cdata in placements.companies %}
+      <div class="company-card open" data-category="{{ cdata.category }}">
+        <!-- Card Header -->
+        <div class="c-head">
+          <div class="c-logo">{{ cdata.logo }}</div>
+          <div style="flex:1">
+            <div class="c-name">{{ cdata.name }}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:2px">📍 {{ cdata.hq }}</div>
+          </div>
+          {% if cdata.badge_type == 'hot' %}
+          <span class="c-status" style="background:rgba(239,68,68,.15);color:var(--red)">{{ cdata.badge }}</span>
+          {% elif cdata.badge_type == 'new' %}
+          <span class="c-status" style="background:rgba(16,185,129,.15);color:var(--green)">{{ cdata.badge }}</span>
+          {% else %}
+          <span class="c-status c-open">{{ cdata.badge }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Package + Location -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;
+                       background:rgba(16,185,129,.1);color:var(--green);font-weight:700;
+                       border:1px solid rgba(16,185,129,.2)">💰 {{ cdata.package }}</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:6px;
+                       background:var(--card);color:var(--muted2);border:1px solid var(--border)">
+            📍 {{ cdata.location[:35] }}{% if cdata.location|length > 35 %}…{% endif %}
+          </span>
+        </div>
+
+        <!-- Roles -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:600">Open Roles</div>
+          {% for role in cdata.roles %}
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:12px">💼</span>
+            <span style="font-size:12px;color:var(--text);font-weight:500">{{ role.title }}</span>
+            <span style="font-size:10px;padding:2px 7px;border-radius:10px;margin-left:auto;
+                         background:rgba(59,130,246,.1);color:var(--accent);border:1px solid rgba(59,130,246,.2)">
+              {{ role.type }}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Eligibility -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600">✅ Eligibility Criteria</div>
+          <div style="display:grid;gap:5px">
+            <div style="font-size:12px;color:var(--text)">🎓 <strong>Degree:</strong> {{ cdata.eligibility.degree }}</div>
+            <div style="font-size:12px;color:var(--green)">📊 <strong>Percentage:</strong> {{ cdata.eligibility.percentage }}</div>
+            <div style="font-size:12px;color:var(--orange)">⚠️ <strong>Backlogs:</strong> {{ cdata.eligibility.backlogs }}</div>
+            <div style="font-size:12px;color:var(--muted2)">📅 <strong>Gap:</strong> {{ cdata.eligibility.gap }}</div>
+            <div style="font-size:12px;color:var(--accent)">🗓️ <strong>Batch:</strong> {{ cdata.eligibility.batch }}</div>
+          </div>
+        </div>
+
+        <!-- Required Skills -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:600">Required Skills</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            {% for skill in cdata.skills %}
+            <span class="skill-tag">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Selection Process -->
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:14px;padding:8px 12px;
+                    background:var(--card2);border-radius:8px;border-left:3px solid var(--accent)">
+          <strong style="color:var(--accent)">Process:</strong> {{ cdata.process }}
+        </div>
+
+        <!-- Actions -->
+        <div class="c-actions">
+          <a href="{{ cdata.careers_url }}" target="_blank" class="c-btn c-btn-primary">🌐 Career Portal</a>
+          <a href="{{ cdata.apply_url }}" target="_blank" class="c-btn c-btn-success">📝 Apply Now</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">
+        <div style="font-size:48px;margin-bottom:16px">🔍</div>
+        <p>No placement data available. Restart the server.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Placement notification -->
+{% if year == 4 and placements and placements.total_open > 0 %}
+<div class="notif" id="notif">
+  <span class="notif-close" onclick="this.parentElement.remove()">×</span>
+  <h4>🎉 {{ placements.total_open }} Company Openings Found!</h4>
+  <p>Check the Placements tab for live job slots at top companies.</p>
+</div>
+{% endif %}
+
+<!-- ── TAB 5: NAUKRI IT JOBS ───────────────────────────────────────────── -->
+<div class="tab-content" id="tab-naukri">
+  <div class="naukri-header">
+    <div class="naukri-hero">
+      <h2>💼 IT Jobs — Fresher Openings</h2>
+      <p>Latest IT job openings for freshers &amp; 0–2 year experience candidates</p>
+      <div class="naukri-source">
+        🌐 Source: Top IT Job Portals &nbsp;|&nbsp;
+        <span id="naukri-update-time">Loading...</span>
+      </div>
+    </div>
+    <a href="https://www.naukri.com/it-jobs" target="_blank"
+       class="apply-btn apply-primary" style="align-self:flex-start">
+      🔗 View All IT Jobs →
+    </a>
+  </div>
+
+  <!-- Search + Filter Bar -->
+  <input type="text" class="search-box" id="job-search"
+         placeholder="🔍 Search jobs, companies, skills..."
+         oninput="filterJobs()">
+
+  <div class="filter-bar" id="filter-bar" style="margin-top:12px">
+    <button class="filter-btn active" onclick="setFilter('All',this)">All</button>
+  </div>
+
+  <div class="jobs-count" id="jobs-count"></div>
+  <div class="jobs-grid" id="jobs-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">
+      <div style="font-size:36px;margin-bottom:12px">⏳</div>
+      <p>Loading IT jobs...</p>
+    </div>
+  </div>
+</div>
+
+<!--
+  ALL JavaScript is pure JS — no Jinja tokens inside this block.
+  Dynamic data is read from the JSON island above.
+-->
+<script>
+(function () {
+  /* Read data island */
+  var raw      = document.getElementById('page-data').textContent;
+  var pageData = JSON.parse(raw);
+  var scores   = pageData.scores;
+  var openCount = pageData.placementsOpen;
+
+  /* Animate data-width bars */
+  document.querySelectorAll('[data-width]').forEach(function (el) {
+    el.style.width = el.getAttribute('data-width') + '%';
+  });
+
+  /* Placement badge */
+  if (openCount > 0) {
+    var badge = document.getElementById('open-count');
+    if (badge) {
+      badge.textContent = String(openCount);
+      badge.style.display = 'inline';
+    }
+  }
+
+  /* Build chart arrays */
+  var labels = Object.keys(scores).map(function (k) {
+    return k.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  });
+  var values = Object.keys(scores).map(function (k) { return scores[k]; });
+
+  /* Radar Chart */
+  var radarCtx = document.getElementById('radarChart').getContext('2d');
+  /* eslint-disable no-new */
+  new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Your Scores',
+        data: values,
+        backgroundColor: 'rgba(59,130,246,.15)',
+        borderColor: '#3b82f6',
+        pointBackgroundColor: '#8b5cf6',
+        pointBorderColor: '#fff',
+        pointRadius: 5,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#94a3b8', font: { family: 'DM Sans' } } }
+      },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          grid: { color: '#1f2d45' },
+          angleLines: { color: '#1f2d45' },
+          pointLabels: { color: '#94a3b8', font: { size: 11, family: 'DM Sans' } },
+          ticks: { color: '#64748b', backdropColor: 'transparent', stepSize: 20 }
+        }
+      }
+    }
+  });
+
+  /* Bar Chart */
+  var barCtx = document.getElementById('barChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Score',
+        data: values,
+        backgroundColor: values.map(function (v) {
+          if (v >= 80) { return 'rgba(16,185,129,.7)'; }
+          if (v >= 60) { return 'rgba(245,158,11,.7)'; }
+          return 'rgba(239,68,68,.7)';
+        }),
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: '#64748b', font: { size: 10, family: 'DM Sans' } },
+          grid: { color: '#1f2d45' }
+        },
+        y: {
+          min: 0, max: 100,
+          ticks: { color: '#64748b' },
+          grid: { color: '#1f2d45' }
+        }
+      }
+    }
+  });
+
+  /* Tab switching */
+  window.showTab = function (name, btn) {
+    document.querySelectorAll('.tab-content').forEach(function (t) {
+      t.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.classList.remove('active');
+    });
+    var target = document.getElementById('tab-' + name);
+    if (target) { target.classList.add('active'); }
+    btn.classList.add('active');
+  };
+
+  /* Company category filter */
+  window.filterCompanies = function (cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.company-card').forEach(function (card) {
+      var cardCat = card.getAttribute('data-category');
+      card.style.display = (cat === 'All' || cardCat === cat) ? '' : 'none';
+    });
+  };
+
+  /* Refresh placements (no-op now — data is static) */
+  window.refreshPlacements = function () { location.reload(); };
+
+  /* ── Naukri Jobs ── */
+  var allJobs = [];
+  var activeFilter = 'All';
+
+  function renderJobs(jobs) {
+    var grid = document.getElementById('jobs-grid');
+    var countEl = document.getElementById('jobs-count');
+    if (!jobs.length) {
+      grid.innerHTML = '<div class="no-jobs"><div style="font-size:36px;margin-bottom:12px">🔍</div><p>No jobs match your search.</p></div>';
+      countEl.innerHTML = 'Showing <span>0</span> jobs';
+      return;
+    }
+    countEl.innerHTML = 'Showing <span>' + jobs.length + '</span> IT jobs for freshers';
+    grid.innerHTML = jobs.map(function (j) {
+      var badgeHtml = '';
+      if (j.badge && j.badge.indexOf('Hot') !== -1) {
+        badgeHtml = '<span class="job-badge badge-hot">' + j.badge + '</span>';
+      } else if (j.badge && j.badge.indexOf('New') !== -1) {
+        badgeHtml = '<span class="job-badge badge-new">' + j.badge + '</span>';
+      }
+      var skills = (j.skills || []).map(function (s) {
+        return '<span class="skill-tag">' + s + '</span>';
+      }).join('');
+      return '<div class="job-card">' +
+        '<div class="job-card-top">' +
+          '<div>' +
+            '<div class="job-title">' + j.title + '</div>' +
+            '<div class="job-company">' + j.company + '</div>' +
+          '</div>' +
+          badgeHtml +
+        '</div>' +
+        '<div class="job-meta">' +
+          '<span class="job-meta-item">📍 ' + j.location + '</span>' +
+          '<span class="job-meta-item">🎓 ' + j.experience + '</span>' +
+          '<span class="salary-badge">💰 ' + j.salary + '</span>' +
+        '</div>' +
+        '<div class="job-desc">' + j.description + '</div>' +
+        '<div class="job-skills">' + skills + '</div>' +
+        '<div class="job-footer">' +
+          '<div class="job-posted">🕐 ' + j.posted + '</div>' +
+          '<div class="job-actions">' +
+            '<a href="' + j.naukri_url + '" target="_blank" class="apply-btn apply-secondary">View Details</a>' +
+            '<a href="' + j.apply_url + '" target="_blank" class="apply-btn apply-primary">Apply Now →</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  window.setFilter = function (cat, btn) {
+    activeFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    filterJobs();
+  };
+
+  window.filterJobs = function () {
+    var query = (document.getElementById('job-search').value || '').toLowerCase();
+    var filtered = allJobs.filter(function (j) {
+      var matchCat = activeFilter === 'All' || j.category === activeFilter;
+      var matchSearch = !query ||
+        j.title.toLowerCase().indexOf(query) !== -1 ||
+        j.company.toLowerCase().indexOf(query) !== -1 ||
+        (j.skills || []).some(function (s) { return s.toLowerCase().indexOf(query) !== -1; }) ||
+        j.location.toLowerCase().indexOf(query) !== -1;
+      return matchCat && matchSearch;
+    });
+    renderJobs(filtered);
+  };
+
+  /* Load jobs on tab click */
+  var naukriLoaded = false;
+  var origShowTab = window.showTab;
+  window.showTab = function (name, btn) {
+    origShowTab(name, btn);
+    if (name === 'naukri' && !naukriLoaded) {
+      naukriLoaded = true;
+      fetch('/api/naukri-jobs')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          allJobs = data.jobs || [];
+          var timeEl = document.getElementById('naukri-update-time');
+          if (timeEl) { timeEl.textContent = 'Updated: ' + data.last_updated; }
+          /* Build category filter buttons */
+          var filterBar = document.getElementById('filter-bar');
+          if (filterBar && data.categories) {
+            data.categories.forEach(function (cat) {
+              var btn2 = document.createElement('button');
+              btn2.className = 'filter-btn';
+              btn2.textContent = cat;
+              btn2.onclick = function () { setFilter(cat, btn2); };
+              filterBar.appendChild(btn2);
+            });
+          }
+          renderJobs(allJobs);
+        })
+        .catch(function (e) {
+          document.getElementById('jobs-grid').innerHTML =
+            '<div class="no-jobs"><div style="font-size:36px;margin-bottom:12px">❌</div><p>Failed to load jobs: ' + e.message + '</p></div>';
+        });
+    }
+  };
+}());
+</script>
+</body>
+</html>

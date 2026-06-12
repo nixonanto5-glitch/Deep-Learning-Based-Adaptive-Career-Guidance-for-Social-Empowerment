@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Adaptive Career Guidance — Teacher Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#080c18;--card:#0f1623;--card2:#0a1020;--border:#1a2840;
+  --accent:#6366f1;--accent2:#8b5cf6;--green:#10b981;--orange:#f59e0b;
+  --red:#ef4444;--text:#dde4f0;--muted:#5a6a84;--muted2:#8898b0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh}
+nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 32px;
+    display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.nav-brand{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+           background:linear-gradient(135deg,#6366f1,#8b5cf6);
+           -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.nav-right{display:flex;align-items:center;gap:12px}
+.teacher-badge{padding:6px 14px;border-radius:20px;background:rgba(99,102,241,.15);
+               border:1px solid rgba(99,102,241,.3);font-size:12px;font-weight:600;color:var(--accent)}
+.logout-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;
+            color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+.container{max-width:1400px;margin:0 auto;padding:32px}
+.page-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:14px;color:var(--muted2);margin-bottom:28px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.stat-value{font-family:'Syne',sans-serif;font-size:32px;font-weight:800}
+.v-accent{color:var(--accent)}
+.v-green{color:var(--green)}
+.v-orange{color:var(--orange)}
+.v-red{color:var(--red)}
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:24px}
+.section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;
+               display:flex;align-items:center;gap:8px}
+.chart-wrap{position:relative;height:320px}
+/* ── Subject avg bar colours — applied via class, never inline Jinja ── */
+.subj-avg-grid{display:grid;gap:10px}
+.subj-avg-row{display:grid;grid-template-columns:200px 1fr 80px 60px;align-items:center;gap:12px;
+              padding:10px 16px;background:var(--card2);border-radius:10px;border:1px solid var(--border)}
+.avg-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.avg-fill{height:100%;width:0;border-radius:4px;transition:width 1s ease}
+.avg-fill.c-green{background:var(--green)}
+.avg-fill.c-orange{background:var(--orange)}
+.avg-fill.c-red{background:var(--red)}
+.avg-val{font-family:'Syne',sans-serif;font-weight:700}
+.avg-val.c-green{color:var(--green)}
+.avg-val.c-orange{color:var(--orange)}
+.avg-val.c-red{color:var(--red)}
+/* ── Student table ── */
+.student-table{width:100%;border-collapse:collapse;font-size:13px}
+.student-table th{text-align:left;padding:10px 14px;color:var(--muted);font-size:11px;
+                  text-transform:uppercase;letter-spacing:.05em;
+                  border-bottom:1px solid var(--border);font-weight:600}
+.student-table td{padding:11px 14px;border-bottom:1px solid rgba(26,40,64,.5)}
+.student-table tr:hover td{background:rgba(99,102,241,.04)}
+.grade-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+.grade-O{background:rgba(16,185,129,.15);color:#6ee7b7}
+.grade-A{background:rgba(99,102,241,.15);color:#a5b4fc}
+.grade-B{background:rgba(245,158,11,.15);color:#fcd34d}
+.grade-C{background:rgba(239,68,68,.15);color:#fca5a5}
+/* overall score cell colours via class */
+.score-cell{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.score-cell.c-green{color:var(--green)}
+.score-cell.c-orange{color:var(--orange)}
+.score-cell.c-red{color:var(--red)}
+.progress-mini{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
+.progress-fill{height:100%;width:0;border-radius:2px;transition:width .8s ease}
+.progress-fill.c-green{background:var(--green)}
+.progress-fill.c-orange{background:var(--orange)}
+.progress-fill.c-red{background:var(--red)}
+/* subject score cells in table */
+.sv-green{color:var(--green);font-weight:600}
+.sv-orange{color:var(--orange);font-weight:600}
+.sv-red{color:var(--red);font-weight:600}
+/* ── At-risk section ── */
+.risk-list{display:flex;flex-direction:column;gap:8px}
+.risk-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+           background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:10px}
+.risk-name{font-weight:600;font-size:14px}
+.risk-avg{font-family:'Syne',sans-serif;font-weight:700;color:var(--red)}
+</style>
+</head>
+<body>
+
+<!--
+  DATA ISLAND — all Jinja values rendered as JSON.
+  The <script> block reads this; zero Jinja tokens appear inside JS or CSS.
+-->
+<script type="application/json" id="page-data">{"classAvg": {{ class_avg_json | safe }}, "subjects": {{ subjects | tojson }}, "students": {{ students | tojson }}}</script>
+
+<nav>
+  <div class="nav-brand">🎓 ADAPTIVE CAREER GUIDANCE</div>
+  <div class="nav-right">
+    <span class="teacher-badge">👨‍🏫 {{ teacher_name }}</span>
+    <a href="/logout"><button class="logout-btn">Logout</button></a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">
+    {{ year }}{% if year == 3 %}rd{% else %}th{% endif %} Year — Class Monitor
+  </div>
+  <div class="page-sub">
+    AI-powered class performance overview · {{ class_avg.total_students }} students tracked
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Class Average</div>
+      <div class="stat-value v-accent">{{ class_avg.overall_average }}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Students</div>
+      <div class="stat-value v-green">{{ class_avg.total_students }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">At Risk (&lt;60%)</div>
+      <div class="stat-value v-red">{{ class_avg.at_risk_students | length }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Subjects Tracked</div>
+      <div class="stat-value v-orange">{{ subjects | length }}</div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+    <div class="section">
+      <div class="section-title">📊 Subject Average Scores</div>
+      <div class="chart-wrap"><canvas id="avgBarChart"></canvas></div>
+    </div>
+    <div class="section">
+      <div class="section-title">🎯 Student Performance Distribution</div>
+      <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Subject Averages Table -->
+  <div class="section">
+    <div class="section-title">📚 Subject-wise Class Averages</div>
+    <div class="subj-avg-grid">
+      {% for subj in subjects %}
+        {% set data = class_avg.subject_averages.get(subj, {}) %}
+        {% set avg  = data.get('mean', 0) %}
+        {% if avg >= 80 %}{% set cc = 'c-green' %}
+        {% elif avg >= 60 %}{% set cc = 'c-orange' %}
+        {% else %}{% set cc = 'c-red' %}{% endif %}
+      <div class="subj-avg-row">
+        <div style="font-size:13px;font-weight:600;text-transform:capitalize">
+          {{ subj.replace('_',' ').title() }}
+        </div>
+        <!-- data-width applied by JS — no Jinja inside style="" -->
+        <div class="avg-bar">
+          <div class="avg-fill {{ cc }}" data-width="{{ avg | int }}"></div>
+        </div>
+        <div class="avg-val {{ cc }}">{{ avg }}%</div>
+        <div style="font-size:11px;color:var(--muted)">±{{ data.get('stddev', 0) }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Student Table -->
+  <div class="section">
+    <div class="section-title">👥 All Students Performance</div>
+    <div style="overflow-x:auto">
+      <table class="student-table">
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Overall %</th>
+            <th>Grade</th>
+            {% for s in subjects[:6] %}
+            <th>{{ s.replace('_',' ').title()[:10] }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for st in students %}
+            {% if st.grade == 'O' %}{% set gc = 'grade-O' %}
+            {% elif st.grade in ['A+','A'] %}{% set gc = 'grade-A' %}
+            {% elif st.grade in ['B+','B'] %}{% set gc = 'grade-B' %}
+            {% else %}{% set gc = 'grade-C' %}{% endif %}
+            {% if st.overall >= 80 %}{% set oc = 'c-green' %}
+            {% elif st.overall >= 60 %}{% set oc = 'c-orange' %}
+            {% else %}{% set oc = 'c-red' %}{% endif %}
+          <tr>
+            <td style="font-family:'Syne',sans-serif;font-size:12px;color:var(--muted2)">
+              {{ st.stuid }}
+            </td>
+            <td style="font-weight:600">{{ st.name }}</td>
+            <td>
+              <!-- colour via class, width via data-width — no Jinja in style="" -->
+              <div class="score-cell {{ oc }}">{{ st.overall }}%</div>
+              <div class="progress-mini">
+                <div class="progress-fill {{ oc }}" data-width="{{ st.overall | int }}"></div>
+              </div>
+            </td>
+            <td><span class="grade-badge {{ gc }}">{{ st.grade }}</span></td>
+            {% for s in subjects[:6] %}
+              {% set sv = st.scores.get(s, 0) | int %}
+              {% if sv >= 80 %}{% set svc = 'sv-green' %}
+              {% elif sv >= 60 %}{% set svc = 'sv-orange' %}
+              {% else %}{% set svc = 'sv-red' %}{% endif %}
+            <td class="{{ svc }}">{{ sv }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- At Risk Students -->
+  {% if class_avg.at_risk_students %}
+  <div class="section" style="border-color:rgba(239,68,68,.3)">
+    <div class="section-title">🚨 Students Needing Attention (&lt;60% average)</div>
+    <div class="risk-list">
+      {% for s in class_avg.at_risk_students %}
+      <div class="risk-item">
+        <div>
+          <div class="risk-name">
+            {{ s.name }}
+            <span style="color:var(--muted);font-size:12px">({{ s.stuid }})</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted2)">
+            Needs immediate attention and remedial support
+          </div>
+        </div>
+        <div class="risk-avg">{{ s.avg }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!--
+  ALL JavaScript below is pure JS — zero Jinja tokens.
+  Data is read from the JSON island defined at the top of <body>.
+-->
+<script>
+(function () {
+  /* Read data island */
+  var raw        = document.getElementById('page-data').textContent;
+  var pageData   = JSON.parse(raw);
+  var classAvg   = pageData.classAvg;
+  var subjectKeys = pageData.subjects;
+  var studentRows = pageData.students;
+
+  /* Animate all data-width bars */
+  document.querySelectorAll('[data-width]').forEach(function (el) {
+    el.style.width = el.getAttribute('data-width') + '%';
+  });
+
+  /* Build chart label & value arrays */
+  var subjectLabels = subjectKeys.map(function (s) {
+    return s.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  });
+  var avgValues = subjectKeys.map(function (s) {
+    var info = classAvg.subject_averages[s];
+    return (info && info.mean) ? info.mean : 0;
+  });
+
+  /* Bar chart — subject averages */
+  var barCtx = document.getElementById('avgBarChart').getContext('2d');
+  /* eslint-disable no-new */
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: subjectLabels,
+      datasets: [{
+        label: 'Class Average',
+        data: avgValues,
+        backgroundColor: avgValues.map(function (v) {
+          if (v >= 80) { return 'rgba(16,185,129,.7)'; }
+          if (v >= 60) { return 'rgba(245,158,11,.7)'; }
+          return 'rgba(239,68,68,.7)';
+        }),
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: '#5a6a84', font: { size: 9, family: 'DM Sans' } },
+          grid:  { color: '#1a2840' }
+        },
+        y: {
+          min: 0, max: 100,
+          ticks: { color: '#5a6a84' },
+          grid:  { color: '#1a2840' }
+        }
+      }
+    }
+  });
+
+  /* Doughnut chart — performance distribution */
+  var strongCount  = studentRows.filter(function (s) { return s.overall >= 80; }).length;
+  var averageCount = studentRows.filter(function (s) { return s.overall >= 60 && s.overall < 80; }).length;
+  var weakCount    = studentRows.filter(function (s) { return s.overall < 60; }).length;
+
+  var dCtx = document.getElementById('doughnutChart').getContext('2d');
+  new Chart(dCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Strong (80%+)', 'Average (60-79%)', 'Weak (<60%)'],
+      datasets: [{
+        data: [strongCount, averageCount, weakCount],
+        backgroundColor: [
+          'rgba(16,185,129,.7)',
+          'rgba(245,158,11,.7)',
+          'rgba(239,68,68,.7)'
+        ],
+        borderColor: ['#10b981', '#f59e0b', '#ef4444'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#8898b0', font: { family: 'DM Sans', size: 13 }, padding: 16 }
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return ctx.label + ': ' + ctx.parsed + ' students';
+            }
+          }
+        }
+      },
+      cutout: '65%'
+    }
+  });
+}());
+</script>
+</body>
+</html>
